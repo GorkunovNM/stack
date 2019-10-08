@@ -6,6 +6,9 @@
 #include <math.h>
 #include <fcntl.h>
 
+//#define DEBUG( code ) if(1){code};
+#define DEBUG( code ) if(0){code};
+
 #define POISON_CONST -666
 #define LOG_FILE "stack.log"
 #define CHUNK 24 // must be >= 24
@@ -94,6 +97,8 @@ int stack_resize_while (struct stack_t *this_, int size_needed, int not_constr);
 
 int stack_destruct (struct stack_t *this_);
 
+void stack_test (struct stack_t *this_);
+
 enum error_enum {no_errors,
                  wrong_stack_pointer,
                  stack_was_destructed,
@@ -162,25 +167,25 @@ void dump (const struct stack_t *this_)
     fprintf (output, "\terror = %d (%s)\n", *(this_ -> error), error_info[*(this_ -> error)]);
     fprintf (output, "\tdata[%d] = [%p]\n", *(this_ -> whole_size), this_ -> data);
     fprintf (output, "\t{\n");
-    printf ("%s %s [%p] (%s)\n{\n", typeid (this_).name (), this_ -> name, this_,
-                                    *(this_ -> error) == no_errors ? "OK" : "ERROR!!!");
-    printf ("\terror = %d (%s)\n", *(this_ -> error), error_info[*(this_ -> error)]);
-    printf ("\tdata[%d] = [%p]\n", *(this_ -> whole_size), this_ -> data);
-    printf ("\t{\n");
+    DEBUG (printf ("%s %s [%p] (%s)\n{\n", typeid (this_).name (), this_ -> name, this_,
+                                           *(this_ -> error) == no_errors ? "OK" : "ERROR!!!");)
+    DEBUG (printf ("\terror = %d (%s)\n", *(this_ -> error), error_info[*(this_ -> error)]);)
+    DEBUG (printf ("\tdata[%d] = [%p]\n", *(this_ -> whole_size), this_ -> data);)
+    DEBUG (printf ("\t{\n");)
     int itt = 0;
     for (itt = 0; itt < *(this_ -> whole_size); itt++)
     {
         fprintf (output, "\t\t[%d]: %d\t%s\n", itt, *(this_ -> data + itt),
                                                *(this_ -> data + itt) == POISON_CONST ? "[poison]" : "");
-        printf ("\t\t[%d]: %d\t%s\n", itt, *(this_ -> data + itt),
-                                      *(this_ -> data + itt) == POISON_CONST ? "[poison]" : "");
+        DEBUG (printf ("\t\t[%d]: %d\t%s\n", itt, *(this_ -> data + itt),
+                                             *(this_ -> data + itt) == POISON_CONST ? "[poison]" : "");)
     }
     fprintf (output, "\t}\n");
     fprintf (output, "\tsize = %d\n", *(this_ -> size_));
     fprintf (output, "}\n");
-    printf ("\t}\n");
-    printf ("\tsize = %d\n", *(this_ -> size_));
-    printf ("}\n");
+    DEBUG (printf ("\t}\n");)
+    DEBUG (printf ("\tsize = %d\n", *(this_ -> size_));)
+    DEBUG (printf ("}\n");)
 
     fclose (output);
 }
@@ -473,6 +478,44 @@ int stack_destruct (struct stack_t *this_)
     return 0;
 }
 
+void stack_test ()
+{
+    int tests_cnt = 5;
+    char tests_names[5][33] = {"tests0.txt", "tests1.txt", "tests2.txt", "tests3.txt", "tests4.txt"};
+    int itt = 0;
+    for (itt = 0; itt < tests_cnt; itt++)
+    {
+        FILE *tests = fopen (tests_names[itt], "r");
+        struct stack_t stk1 = {};
+        stack_construct (stk1);
+        int size_of_name = (int) stk1.data - (int) stk1.name;
+        char cmd = '\0';
+        elem_t num = 0;
+        scanf ("%1s", &cmd);
+        while (cmd != EOF)
+        {
+            if (cmd == 'u')
+            {
+                scanf ("%d", &num);
+                stack_push (&stk1, num);
+            }
+            if (cmd == 'o')
+            {
+                num = stack_pop (&stk1);
+                printf ("\t>> %d\n", num);
+            }
+            if (cmd == 's')
+            {
+                num = stack_size (&stk1);
+                printf ("\t>> %d\n", num);
+            }
+            scanf ("%c", cmd);
+        }
+        fclose (tests);
+        stack_destruct (&stk1);
+    }
+}
+
 int main ()
 {
     struct stack_t stk1 = {};
@@ -496,6 +539,7 @@ int main ()
     }
     stack_destruct (&stk1);
     printf ("%d\n", val);
+    //stack_test ();
     return 0;
 }
 
