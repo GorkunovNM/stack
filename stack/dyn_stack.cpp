@@ -69,7 +69,8 @@
                                                               (int) ceil ((float) (*(this_.whole_size) * sizeof (elem_t)) / sizeof (unsigned int));                                                                                                      \
                                                                                                                                                                                                                                                          \
                                     *(this_.buf_canary_end)      = BUF_CANARY_END;                                                                                                                                                                       \
-                                    this_.cntrl_sum = control_sum (this_.all_struc_data, *(this_.all_struc_data_size)) * control_sum ((int *) &this_ + 2, 13 * 4) % 1000000;                                                                             \
+                                    this_.cntrl_sum = control_sum (this_.all_struc_data, *(this_.all_struc_data_size)) *                                                                                                                                 \
+                                                      control_sum ((int *) &this_ + 2, 13 * 4) % 1000000;                                                                                                                                                \
                                                                                                                                                                                                                                                          \
                                     assert (stack_ok (&this_))
 
@@ -542,4 +543,3 @@ int main ()
     //stack_test ();
     return 0;
 }
-
