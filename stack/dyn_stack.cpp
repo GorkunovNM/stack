@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <fcntl.h>
+#include <errno.h>
 
 //#define DEBUG( code ) if(1){code};
 #define DEBUG( code ) if(0){code};
@@ -233,54 +234,63 @@ int stack_ok (struct stack_t *this_)
 {
     if (is_pointer_wrong (this_))
     {
+        errno = wrong_stack_pointer;
         *(this_ -> error) = wrong_stack_pointer;
         dump (this_);
         return 0;
     }
     if (is_pointer_wrong (this_ -> all_struc_data))
     {
+        errno = wrong_all_struc_data_pointer;
         *(this_ -> error) = wrong_all_struc_data_pointer;
         dump (this_);
         return 0;
     }
     if (this_ -> buf_canary_front != (unsigned int *) this_ -> all_struc_data)
     {
+        errno = wrong_buf_canary_front_pointer;
         *(this_ -> error) = wrong_buf_canary_front_pointer;
         dump (this_);
         return 0;
     }
     if (this_ -> all_struc_data_size != (int *) this_ -> all_struc_data + 1)
     {
+        errno = wrong_all_struc_data_size_pointer;
         *(this_ -> error) = wrong_all_struc_data_size_pointer;
         dump (this_);
         return 0;
     }
     if (this_ -> size_ != (int *) this_ -> all_struc_data + 2)
     {
+        errno = wrong_size__pointer;
         *(this_ -> error) = wrong_size__pointer;
         dump (this_);
         return 0;
     }
     if (this_ -> univ_itt != (int *) this_ -> all_struc_data + 3)
     {
+        errno = wrong_univ_itt_pointer;
         *(this_ -> error) = wrong_univ_itt_pointer;
         dump (this_);
         return 0;
     }
     if (this_ -> error != (int *) this_ -> all_struc_data + 4)
     {
+        errno = wrong_error_pointer;
         *(this_ -> error) = wrong_error_pointer;
         dump (this_);
         return 0;
     }
     if (this_ -> whole_size != (int *) this_ -> all_struc_data + 5)
     {
+        errno = wrong_whole_size_pointer;
         *(this_ -> error) = wrong_whole_size_pointer;
         dump (this_);
         return 0;
     }
     if (this_ -> name != (char *) this_ -> all_struc_data + 24)
     {
+        errno = wrong_name_pointer;
         *(this_ -> error) = wrong_name_pointer;
         dump (this_);
         return 0;
@@ -292,6 +302,7 @@ int stack_ok (struct stack_t *this_)
         (int) ceil ((float) 24 / sizeof (elem_t)) +
         (int) ceil ((float) size_of_name / sizeof (elem_t)))
     {
+        errno = wrong_data_pointer;
         *(this_ -> error) = wrong_data_pointer;
         dump (this_);
         return 0;
@@ -301,53 +312,62 @@ int stack_ok (struct stack_t *this_)
         (int) ceil ((float) size_of_name / sizeof (elem_t)) +
         (int) ceil ((float) (*(this_ -> whole_size) * sizeof (elem_t)) / sizeof (unsigned int)))
     {
+        errno = wrong_buf_canary_end_pointer;
         *(this_ -> error) = wrong_buf_canary_end_pointer;
         dump (this_);
         return 0;
     }
     if (*(this_ -> error) == stack_was_destructed)
     {
+        errno = stack_was_destructed;
         dump (this_);
         return 0;
     }
     if (*(this_ -> size_) > *(this_ -> whole_size))
     {
+        errno = stack_is_overflowed;
         *(this_ -> error) = stack_is_overflowed;
         dump (this_);
         return 0;
     }
     if (*(this_ -> size_) < 0)
     {
+        errno = stack_is_empty;
         *(this_ -> error) = stack_is_empty;
         dump (this_);
         return 0;
     }
     if (*(this_ -> univ_itt) != 0)
     {
+        errno = univ_itt_is_not_0;
         *(this_ -> error) = univ_itt_is_not_0;
         dump (this_);
         return 0;
     }
     if (this_ -> canary_front != CANARY_FRONT)
     {
+        errno = broken_front_struct_canary;
         *(this_ -> error) = broken_front_struct_canary;
         dump (this_);
         return 0;
     }
     if (this_ -> canary_end != CANARY_END)
     {
+        errno = broken_end_struct_canary;
         *(this_ -> error) = broken_end_struct_canary;
         dump (this_);
         return 0;
     }
     if (*(this_ -> buf_canary_front) != BUF_CANARY_FRONT)
     {
+        errno = broken_front_buf_canary;
         *(this_ -> error) = broken_front_buf_canary;
         dump (this_);
         return 0;
     }
     if (*(this_ -> buf_canary_end) != BUF_CANARY_END)
     {
+        errno = broken_end_buf_canary;
         *(this_ -> error) = broken_end_buf_canary;
         dump (this_);
         return 0;
@@ -355,6 +375,7 @@ int stack_ok (struct stack_t *this_)
     if (this_ -> cntrl_sum = control_sum (this_ -> all_struc_data, *(this_ -> all_struc_data_size)) *
                              control_sum ((int *) &this_ + 2, 13 * 4) % 1000000)   //!!!
     {
+        errno = broken_cntrl_sum;
         *(this_ -> error) = broken_cntrl_sum;
         dump (this_);
         return 0;
@@ -543,3 +564,4 @@ int main ()
     //stack_test ();
     return 0;
 }
+
